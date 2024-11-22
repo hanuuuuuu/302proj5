@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Quiz</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f4f4f4;
+    }
+    .container {
+      text-align: center;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .slide { display: none; }
+    .active-slide { display: block; }
+    .correct { color: green; }
+    .incorrect { color: red; }
+    #timer {
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="timer">Time left: <span id="time">60</span> seconds</div>
+    <div id="quiz"></div>
+    <div>
+      <button id="previous">Previous</button>
+      <button id="next">Next</button>
+      <button id="submit">Submit Quiz</button>
+    </div>
+    <div id="results"></div>
+  </div>
+
+  <script>
+    // Functions
+    function buildQuiz() {
+      const output = [];
+      myQuestions.forEach((currentQuestion, questionNumber) => {
+        const answers = [];
+        for (letter in currentQuestion.answers) {
+          answers.push(
+            `<label>
+              <input type="radio" name="question${questionNumber}" value="${letter}">
+              ${letter} :
+              ${currentQuestion.answers[letter]}
+            </label>`
+          );
+        }
+        output.push(
+          `<div class="slide">
+            <div class="question"> ${currentQuestion.question} </div>
+            <div class="answers"> ${answers.join('')} </div>
+          </div>`
+        );
+      });
+      quizContainer.innerHTML = output.join('');
+      console.log('Quiz built:', quizContainer.innerHTML); // Debug log
+    }
+
+    function showResults() {
+      const answerContainers = quizContainer.querySelectorAll('.answers');
+      let numCorrect = 0;
+      myQuestions.forEach((currentQuestion, questionNumber) => {
+        const answerContainer = answerContainers[questionNumber];
+        const selector = `input[name=question${questionNumber}]:checked`;
+        const userAnswer = (answerContainer.querySelector(selector) || {}).value;
+        if (userAnswer === currentQuestion.correctAnswer) {
+          numCorrect++;
+          answerContainers[questionNumber].style.color = 'green';
+        } else {
+          answerContainers[questionNumber].style.color = 'red';
+        }
+      });
+      resultsContainer.innerHTML = `${numCorrect} out of ${myQuestions.length}`;
+    }
+
+    function showSlide(n) {
+      slides[currentSlide].classList.remove('active-slide');
+      slides[n].classList.add('active-slide');
+      currentSlide = n;
+      if (currentSlide === 0) {
+        previousButton.style.display = 'none';
+      } else {
+        previousButton.style.display = 'inline-block';
+      }
+      if (currentSlide === slides.length - 1) {
+        nextButton.style.display = 'none';
+        submitButton.style.display = 'inline-block';
+      } else {
+        nextButton.style.display = 'inline-block';
+        submitButton.style.display = 'none';
+      }
+      console.log('Showing slide:', n); // Debug log
+    }
+
+    function showNextSlide() {
+      showSlide(currentSlide + 1);
+    }
+
+    function showPreviousSlide() {
+      showSlide(currentSlide - 1);
+    }
+
+    function startTimer(duration, display) {
+      let timer = duration, minutes, seconds;
+      const interval = setInterval(() => {
+        minutes = parseInt(timer / 60, 10);
+        seconds = parseInt(timer % 60, 10);
+
+        minutes = minutes < 10 ? "0" + minutes : minutes;
+        seconds = seconds < 10 ? "0" + seconds : seconds;
+
+        display.textContent = minutes + ":" + seconds;
+
+        if (--timer < 0) {
+          clearInterval(interval);
+          showResults();
+        }
+      }, 1000);
+    }
+
+    // Variables
+    const quizContainer = document.getElementById('quiz');
+    const submitButton = document.getElementById('submit');
+    const resultsContainer = document.getElementById('results');
+    const myQuestions = [
+      {
+        question: "Who is the current president of the US?",
+        answers: {
+          a: "Donald Trump",
+          b: "Joe Biden",
+          c: "Barack Obama"
+        },
+        correctAnswer: "b"
+      },
+      {
+        question: "What is the capital of France?",
+        answers: {
+          a: "Berlin",
+          b: "Madrid",
+          c: "Paris"
+        },
+        correctAnswer: "c"
+      },
+      {
+        question: "What is 2 + 2?",
+        answers: {
+          a: "3",
+          b: "4",
+          c: "5"
+        },
+        correctAnswer: "b"
+      },
+      {
+        question: "What is the largest planet in our solar system?",
+        answers: {
+          a: "Earth",
+          b: "Jupiter",
+          c: "Saturn"
+        },
+        correctAnswer: "b"
+      },
+      {
+        question: "What is the boiling point of water?",
+        answers: {
+          a: "90°C",
+          b: "100°C",
+          c: "110°C"
+        },
+        correctAnswer: "b"
+      }
+    ];
+    const previousButton = document.getElementById('previous');
+    const nextButton = document.getElementById('next');
+    let slides;
+    let currentSlide = 0;
+
+    // Kick things off
+    buildQuiz();
+    slides = document.querySelectorAll('.slide');
+    showSlide(currentSlide);
+
+    // Start the timer
+    const timeDisplay = document.getElementById('time');
+    startTimer(60, timeDisplay);
+
+    // Event listeners
+    submitButton.addEventListener('click', showResults);
+    previousButton.addEventListener('click', showPreviousSlide);
+    nextButton.addEventListener('click', showNextSlide);
+  </script>
+</body>
+</html>
